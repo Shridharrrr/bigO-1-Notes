@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>LeetCode Auto Notes</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        <rect x="9" y="3" width="6" height="4" rx="1" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round" />
+        <path d="M9 12h6M9 16h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
+      <span class="brand-name">LeetCode Notes</span>
+    </div>
+    <div class="topbar-actions">
+      <button id="settingsBtn" class="icon-btn" title="Settings" aria-label="Settings">⚙</button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="notes" role="tab" aria-selected="true">Notes</button>
+    <button class="tab" data-tab="settings" role="tab" aria-selected="false">Settings</button>
+  </nav>
+
+  <main>
+    <section id="notesView" class="view active">
+      <div class="toolbar">
+        <input id="searchInput" type="search" placeholder="Search..." />
+        <select id="sortSelect">
+          <option value="recent">Most recent</option>
+          <option value="topic">By topic</option>
+          <option value="difficulty">By difficulty</option>
+        </select>
+      </div>
+
+      <div id="emptyState" class="empty-state hidden">
+        <p class="empty-title">No notes yet</p>
+        <p class="empty-sub">Solve a problem on LeetCode and get an "Accepted" result — a note will appear here
+          automatically.</p>
+      </div>
+
+      <div id="groupsContainer" class="groups"></div>
+    </section>
+
+    <section id="settingsView" class="view">
+      <div class="settings-card">
+        <label class="field-label" for="providerSelect">AI provider</label>
+        <select id="providerSelect" class="full-select">
+          <option value="gemini">Google Gemini</option>
+          <option value="openai">OpenAI</option>
+          <option value="anthropic">Anthropic (Claude)</option>
+          <option value="ollama">Ollama (local, no API key)</option>
+        </select>
+
+        <label class="field-label" for="modelInput">Model</label>
+        <input id="modelInput" type="text" />
+        <p id="modelHint" class="field-hint"></p>
+
+        <div id="apiKeyGroup">
+          <label class="field-label" for="apiKeyInput">API key</label>
+          <input id="apiKeyInput" type="password" />
+          <p id="apiKeyHint" class="field-hint"></p>
+        </div>
+
+        <div id="baseUrlGroup" class="hidden">
+          <label class="field-label" for="baseUrlInput">Ollama server URL</label>
+          <input id="baseUrlInput" type="text" />
+          <p class="field-hint">
+            Ollama blocks browser-extension origins by default. Start it with
+            <code>OLLAMA_ORIGINS=* ollama serve</code> (or add this extension's
+            ID to OLLAMA_ORIGINS) so requests aren't rejected.
+          </p>
+        </div>
+
+        <div class="toggle-row">
+          <label for="autoGenToggle">Auto-generate notes on each accepted submission</label>
+          <input id="autoGenToggle" type="checkbox" />
+        </div>
+
+        <div class="button-row">
+          <button id="saveSettingsBtn" class="primary-btn">Save settings</button>
+          <button id="testConnectionBtn" class="secondary-btn">Test connection</button>
+        </div>
+        <p id="settingsSavedMsg" class="saved-msg hidden">Saved</p>
+        <p id="testResultMsg" class="hidden"></p>
+      </div>
+
+      <div class="settings-card">
+        <p class="card-title">GitHub Sync</p>
+        <p class="card-subtitle">Push saved notes as Markdown files to a GitHub repository.</p>
+
+        <label class="field-label" for="githubPatInput">Personal Access Token (PAT)</label>
+        <input id="githubPatInput" type="password" />
+        <p class="field-hint">Requires write access to repo contents (<code>contents:write</code>).</p>
+
+        <label class="field-label" for="githubRepoInput">Repository</label>
+        <input id="githubRepoInput" type="text" />
+
+        <label class="field-label" for="githubBranchInput">Branch</label>
+        <input id="githubBranchInput" type="text" />
+
+        <div class="toggle-row">
+          <label for="githubAutoSyncToggle">Push notes to GitHub automatically</label>
+          <input id="githubAutoSyncToggle" type="checkbox" />
+        </div>
+
+
+        <div id="githubProgressPanel" class="sync-progress-panel hidden">
+          <div class="sync-progress-header">
+            <span id="githubProgressLabel" class="sync-progress-title">Syncing…</span>
+            <span id="githubProgressCount" class="sync-progress-count">0 / 0</span>
+          </div>
+          <div class="sync-progress-track">
+            <div id="githubProgressBar" class="sync-progress-fill"></div>
+          </div>
+          <p id="githubProgressCurrent" class="sync-progress-current"></p>
+        </div>
+
+        <div class="button-row" style="margin-bottom:6px">
+          <button id="saveGithubBtn" class="primary-btn">Save settings</button>
+          <button id="testGithubBtn" class="secondary-btn">Test connection</button>
+        </div>
+        <div class="button-row">
+          <button id="syncAllGithubBtn" class="secondary-btn" style="width:100%">Push all notes to GitHub</button>
+        </div>
+        <p id="githubSavedMsg" class="saved-msg hidden">Saved</p>
+        <p id="githubTestResultMsg" class="hidden"></p>
+      </div>
+
+      <div class="settings-card danger-zone">
+        <p class="card-title">Data</p>
+        <p class="card-subtitle">Export your notes or clear everything stored locally.</p>
+        <div class="button-row">
+          <button id="exportBtn" class="secondary-btn">Export notes (.json)</button>
+          <button id="clearAllBtn" class="secondary-btn danger">Clear all notes</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Note detail modal -->
+  <div id="noteModal" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modalTitle">Problem title</h2>
+        <div class="modal-header-right">
+          <div class="mode-toggle" role="group" aria-label="View mode">
+            <button id="previewModeBtn" class="mode-btn active" aria-pressed="true" title="Preview" aria-label="Preview">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+            <button id="editModeBtn" class="mode-btn" aria-pressed="false" title="Edit" aria-label="Edit">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 20h9"/>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"/>
+              </svg>
+            </button>
+          </div>
+          <button id="closeModalBtn" class="icon-btn" aria-label="Close">✕</button>
+        </div>
+      </div>
+      <div class="modal-meta">
+        <span id="modalDifficulty" class="pill"></span>
+        <span id="modalTags" class="tag-list"></span>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- Preview panel (default) -->
+        <div id="modalPreviewPanel" class="modal-preview">
+          <div id="previewContent"></div>
+          <p id="aiErrorMsg" class="error-msg hidden"></p>
+          <p id="githubSyncMsg" class="field-hint hidden"></p>
+        </div>
+
+        <!-- Edit panel -->
+        <div id="modalEditPanel" class="modal-edit-form hidden">
+          <label class="field-label">Approach</label>
+          <textarea id="approachField" rows="3"></textarea>
+
+          <label class="field-label">Optimal approach (if applicable)</label>
+          <textarea id="optimalApproachField" rows="3"></textarea>
+
+          <div class="complexity-row">
+            <div>
+              <label class="field-label">Time complexity</label>
+              <input id="timeField" type="text" />
+            </div>
+            <div>
+              <label class="field-label">Space complexity</label>
+              <input id="spaceField" type="text" />
+            </div>
+          </div>
+
+          <label class="field-label">Key insight</label>
+          <textarea id="insightField" rows="2"></textarea>
+
+          <label class="field-label">Pitfalls / edge cases</label>
+          <textarea id="pitfallsField" rows="2"></textarea>
+
+          <label class="field-label">Code</label>
+          <pre id="codeField" class="code-block"></pre>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <!-- Preview-mode actions -->
+        <button id="githubPushBtn" class="icon-btn-sq secondary-btn preview-only" title="Push to GitHub" aria-label="Push to GitHub">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="16 16 12 12 8 16"/>
+            <line x1="12" y1="12" x2="12" y2="21"/>
+            <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+          </svg>
+        </button>
+        <button id="regenerateBtn" class="icon-btn-sq secondary-btn preview-only" title="Regenerate with AI" aria-label="Regenerate with AI">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+        </button>
+        <button id="openProblemBtn" class="icon-btn-sq secondary-btn" title="Open on LeetCode" aria-label="Open on LeetCode">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+        </button>
+        <div class="spacer"></div>
+        <button id="deleteNoteBtn" class="icon-btn-sq secondary-btn danger" title="Delete note" aria-label="Delete note">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+            <line x1="10" y1="11" x2="10" y2="17"/>
+            <line x1="14" y1="11" x2="14" y2="17"/>
+          </svg>
+        </button>
+        <!-- Edit-mode action -->
+        <button id="saveNoteBtn" class="icon-btn-sq primary-btn edit-only hidden" title="Save note" aria-label="Save note">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+
+</html>

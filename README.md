@@ -1,4 +1,4 @@
-# LeetCode Auto Notes
+# O(1) Notes
 
 A browser extension that automatically generates study notes after you solve a LeetCode problem — approach, time/space complexity, key insight, and pitfalls — grouped by topic tag. Notes are AI-generated using your choice of Gemini, OpenAI, Anthropic, or a local Ollama model, and are fully editable afterward.
 
@@ -22,7 +22,7 @@ If you solve the same problem multiple times, the attempt count increases and th
 2. Open `brave://extensions` (or `chrome://extensions`).
 3. Toggle **Developer mode** on (top-right corner).
 4. Click **Load unpacked**.
-5. Select the `leetcode-notes` folder (the one containing `manifest.json`).
+5. Select the `o1-notes` folder (the one containing `manifest.json`).
 6. The extension icon (notes icon) appears in your toolbar. Pin it for easy access.
 
 ---
@@ -63,18 +63,18 @@ You can push your notes as Markdown files to a GitHub repository. Each note is s
 
 1. **Create a GitHub Personal Access Token (PAT)**
    - Go to [github.com/settings/tokens](https://github.com/settings/tokens) → **Generate new token (classic)**.
-   - Give it a descriptive name (e.g. `leetcode-notes`).
+   - Give it a descriptive name (e.g. `o1-notes`).
    - Under **Scopes**, tick **`repo`** (or at minimum **`contents:write`** on a fine-grained token).
    - Click **Generate token** and copy it immediately — you won't see it again.
 
 2. **Create a destination repository**
-   - Create a new (or use an existing) GitHub repo where notes will be stored, e.g. `your-username/leetcode-notes`.
+   - Create a new (or use an existing) GitHub repo where notes will be stored, e.g. `your-username/o1-notes`.
    - The branch you target (default: `main`) must already exist.
 
 3. **Configure the extension**
    - Open the popup → **Settings** tab → scroll to **GitHub Sync**.
    - Paste your PAT into **Personal Access Token**.
-   - Enter the repo in `owner/repo` format (e.g. `your-username/leetcode-notes`). You can also paste a full GitHub URL — the extension normalises it automatically.
+   - Enter the repo in `owner/repo` format (e.g. `your-username/o1-notes`). You can also paste a full GitHub URL — the extension normalises it automatically.
    - Set the **Branch** (default: `main`).
    - Click **Save settings**, then **Test connection** to confirm the token and repo are valid.
 

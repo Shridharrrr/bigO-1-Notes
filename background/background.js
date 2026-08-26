@@ -63,9 +63,11 @@ function fallbackNoteFields() {
 function getNotePath(note) {
   let primaryTag = "untagged";
   if (note.tags && note.tags.length > 0 && note.tags[0]) {
-    primaryTag = note.tags[0].toLowerCase().trim().replace(/\s+/g, "-");
+    primaryTag = note.tags[0].toLowerCase().trim().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
   }
-  return `problems/${primaryTag}/${note.titleSlug}.md`;
+  if (!primaryTag) primaryTag = "untagged";
+  const slug = (note.titleSlug || "unknown").replace(/[^a-z0-9-]/gi, "");
+  return `problems/${primaryTag}/${slug}.md`;
 }
 
 function buildMarkdownContent(note) {
@@ -189,7 +191,7 @@ async function syncNoteToGithub(titleSlug, force = false) {
     // 2. Upload the Markdown file.
     const markdownContent = buildMarkdownContent(note);
     const body = {
-      message: `sync: ${note.title} [leetcode-auto-notes]`,
+      message: `sync: ${note.title} [o1-notes]`,
       content: toBase64(markdownContent),
       branch: settings.branch,
     };
@@ -224,7 +226,7 @@ async function syncNoteToGithub(titleSlug, force = false) {
     return { ok: true, path };
 
   } catch (err) {
-    console.error("[LeetCode Auto Notes] GitHub sync failed:", err);
+    console.error("[O(1) Notes] GitHub sync failed:", err);
     notes[titleSlug] = { ...note, githubSyncError: err.message };
     await chrome.storage.local.set({ notes });
     chrome.runtime.sendMessage({ type: "NOTES_UPDATED" }).catch(() => {});
@@ -348,7 +350,7 @@ async function handleProblemAccepted(payload) {
       generated = true;
     } catch (err) {
       aiError = err.message;
-      console.warn("[LeetCode Auto Notes] AI generation failed:", err);
+      console.warn("[O(1) Notes] AI generation failed:", err);
     }
   }
 

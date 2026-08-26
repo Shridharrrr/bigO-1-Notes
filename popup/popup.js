@@ -288,12 +288,13 @@ function renderProblemRow(note) {
     ? `<span class="gh-badge error" title="GitHub sync error">GH</span>`
     : `<span class="gh-badge ${syncState}" title="${ghTitles[syncState]}">GH</span>`;
 
+  const safeDifficultyClass = escapeHtml(note.difficulty).replace(/[^a-zA-Z0-9-]/g, "");
   row.innerHTML = `
     <span class="problem-title">${escapeHtml(note.title)}</span>
     <span class="problem-meta">
       ${note.generated ? '<span class="ai-badge">AI</span>' : ""}
       ${githubBadge}
-      <span class="pill ${note.difficulty}">${note.difficulty}</span>
+      <span class="pill ${safeDifficultyClass}">${escapeHtml(note.difficulty)}</span>
     </span>
   `;
   row.addEventListener("click", () => openModal(note.titleSlug));
@@ -301,9 +302,12 @@ function renderProblemRow(note) {
 }
 
 function escapeHtml(str) {
-  const div = document.createElement("div");
-  div.textContent = str || "";
-  return div.innerHTML;
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 // Returns "never" | "pending" | "synced" based on modification vs sync timestamps.
@@ -441,7 +445,7 @@ function openModal(slug) {
   // Header
   els.modalTitle.textContent = note.title;
   els.modalDifficulty.textContent = note.difficulty;
-  els.modalDifficulty.className = "pill " + note.difficulty;
+  els.modalDifficulty.className = "pill " + note.difficulty.replace(/[^a-zA-Z0-9-]/g, "");
   els.modalTags.innerHTML = (note.tags || [])
     .map((t) => `<span class="tag-chip">${escapeHtml(t)}</span>`)
     .join("");
@@ -822,7 +826,7 @@ els.exportBtn.addEventListener("click", () => {
   const blob = new Blob([JSON.stringify(allNotes, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   chrome.downloads
-    ? chrome.downloads.download({ url, filename: "leetcode-notes-export.json" })
+    ? chrome.downloads.download({ url, filename: "o1-notes-export.json" })
     : window.open(url);
 });
 

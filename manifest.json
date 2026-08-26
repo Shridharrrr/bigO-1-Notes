@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "LeetCode Auto Notes",
+  "name": "O(1) Notes",
   "version": "1.0.0",
   "description": "Automatically generates and organizes notes (approach + complexity) after you solve LeetCode problems, grouped by topic.",
   "icons": {
